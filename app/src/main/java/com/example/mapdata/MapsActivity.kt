@@ -1,10 +1,14 @@
 package com.example.mapdata
 
+import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Looper
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -30,6 +34,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     lateinit var locationRequest: LocationRequest
     lateinit var locationCallback: LocationCallback
+
+    companion object{
+        private const val MY_PERMISSION_CODE: Int = 1000
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,28 +70,57 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 latitude = mLastLocation.latitude
                 longitude = mLastLocation.longitude
 
-                val LatLng = LatLng(latitude, longitude)
+                val latLng = LatLng(latitude, longitude)
                 val markerOptions = MarkerOptions()
-                    .position(LatLng)
+                    .position(latLng)
                     .title("Your position")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
 
                 mMarker = mMap!!.addMarker(markerOptions)
 
 
-                
+                mMap!!.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+                mMap!!.animateCamera(CameraUpdateFactory.zoomBy(11f))
             }
         }
     }
 
     private fun buildLocationRequest() {
-
+        locationRequest = LocationRequest()
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationRequest.interval = 5000
+        locationRequest.fastestInterval = 3000
+        locationRequest.smallestDisplacement = 10f
     }
 
-    private fun checkLocationPermission() {
+    private fun checkLocationPermission(): Boolean {
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION))
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), MY_PERMISSION_CODE)
+            else
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), MY_PERMISSION_CODE)
 
+            return false
+        }
+        else
+            return true
     }
 
+    override fun onRequestPermissionsResult( requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when(requestCode){
+
+            MY_PERMISSION_CODE->{
+                if(grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                        if(checkLocationPermission()) {
+                            mMap!!.isMyLocationEnabled = true
+                        }
+                }
+                else
+                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
