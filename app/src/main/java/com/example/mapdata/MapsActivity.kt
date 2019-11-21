@@ -23,14 +23,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
     }
 
-    
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        val almaty = LatLng(43.0,77.0)
+        mMap.addMarker(MarkerOptions().position(almaty).title("Marker in Almaty"))
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(almaty))
     }
     // kotlin
     // android studio
