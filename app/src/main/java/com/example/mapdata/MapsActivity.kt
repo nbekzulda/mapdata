@@ -48,14 +48,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         // Request runtime permission
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            checkLocationPermission()
-        buildLocationRequest()
-        buildLocationCallBack()
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                if(checkLocationPermission()){
+                    buildLocationRequest()
+                    buildLocationCallBack()
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+                    fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+                    fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+                }
 
+                else {
+                    buildLocationRequest()
+                    buildLocationCallBack()
+
+                    fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+                    fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+                }
+
+        }
     }
 
     private fun buildLocationCallBack() {
@@ -80,7 +90,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
                 mMap!!.moveCamera(CameraUpdateFactory.newLatLng(latLng))
-                mMap!!.animateCamera(CameraUpdateFactory.zoomBy(11f))
+                mMap!!.animateCamera(CameraUpdateFactory.zoomTo(11f))
             }
         }
     }
@@ -113,6 +123,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 if(grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                     if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                         if(checkLocationPermission()) {
+                            buildLocationRequest()
+                            buildLocationCallBack()
+
+                            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+                            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
                             mMap!!.isMyLocationEnabled = true
                         }
                 }
@@ -122,14 +137,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    override fun onStop() {
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        super.onStop()
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-        val almaty = LatLng(43.0,77.0)
-        mMap.addMarker(MarkerOptions().position(almaty).title("Marker in Almaty"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(almaty))
+        // Init Google Service
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+                mMap!!.isMyLocationEnabled = true
+            }
+            else
+                mMap!!.isMyLocationEnabled = true
+
+            mMap.uiSettings.isZoomControlsEnabled = true
+        }
     }
-    // kotlin
-    // android studio
+
 }
